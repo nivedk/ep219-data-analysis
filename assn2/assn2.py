@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.colors import LogNorm
 
 #This method uses the pandas method read_csv to extract data from a .txt file, which is then converted into a numpy array for ease of manipulation which is returned
 def readData():
@@ -41,9 +42,25 @@ if __name__ == "__main__":
     plt.axvline(np.mean(data[:,2]) + np.std(data[:,2]), color='r', linestyle='dashed', linewidth=2)
     plt.axvline(np.mean(data[:,2]) - np.std(data[:,2]), color='r', linestyle='dashed', linewidth=2)
     plt.show()
-    plt.hexbin(data[:,0], data[:,1])
+    plt.rc('text', usetex=True)
+    plt.rc('font', family='serif')
+    plt.hist2d(data[:,0], data[:,1], bins=100, cmap = 'plasma')
+    plt.xlabel(r'\textbf{\Large friends  \textrightarrow}')
+    plt.ylabel(r'\textbf{\Large posts  \textrightarrow}')
+    plt.title(r'{\huge \textbf{posts} {\Large vs} \textbf{friends}}')
+    plt.colorbar()
     plt.show()
-    plt.hexbin(data[:,1], data[:,2])
+    plt.rc('text', usetex=True)
+    plt.hist2d(data[:,1], data[:,2], bins=100, cmap = 'plasma')
+    plt.xlabel(r'\textbf{\Large posts  \textrightarrow}')
+    plt.ylabel(r'\textbf{\Large likes  \textrightarrow}')
+    plt.title(r'{\huge \textbf{likes} {\Large vs} \textbf{posts}}')
+    plt.colorbar()
     plt.show()
-    plt.hexbin(data[:,2], data[:,0])
+    plt.rc('text', usetex=True)
+    plt.hist2d(data[:,2], data[:,0], bins=100, cmap = 'plasma')
+    plt.xlabel(r'\textbf{\Large likes  \textrightarrow}')
+    plt.ylabel(r'\textbf{\Large friends  \textrightarrow}')
+    plt.title(r'{\huge \textbf{friends} {\Large vs} \textbf{likes}}')
+    plt.colorbar()
     plt.show()
