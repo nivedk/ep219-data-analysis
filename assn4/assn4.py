@@ -31,7 +31,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import math
-
+import scipy.optimize as optimize
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
@@ -122,7 +122,10 @@ if __name__ == "__main__":
 
     ys = polynomial(years)
     plt.plot(years, ys, label = 'Quadratic fit')
-    #plt.plot(np.array([1880,2010]),np.array([8.269,8.84425]), label = "Our estimate")
+    #m and c min came out to be 0.0045, 0.1
+    #plt.plot(np.array([1880,2010]),np.array([8.2,9.145]), label = "Our estimate")
+    #c = -7.3, m = 9.0413
+    plt.plot(np.array([1880,2010]),np.array([7.9844,9.043]), label = "Our estimate")
     handles, labels = ax.get_legend_handles_labels()
     plt.legend(handles, labels)
     plt.xlabel("Years")
@@ -137,12 +140,28 @@ if __name__ == "__main__":
     
     fig = plt.figure()
 
+    
+
     #Defining the parameter space for plotting the contours
     #The limits for the parameter space were decided by taking hints from the optimal values predicted by the linear fitting function
     #These specific values were set after a lot of tweaking to get a nice informative contour
-    C = np.arange(-0.2, 0.1, 0.02)
-    M = np.arange(0.00432, 0.00462, 0.0001)
-    C, M = np.meshgrid(C, M)
+
+    """
+    C1 = np.arange(-0.2, 0.1, 0.02)
+    M1 = np.arange(0.00432, 0.00462, 0.0001)
+    
+
+    """
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    # Change the Ranges in C1 and M1
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    C1 = np.arange(-10.16, -10.12, 0.0001)
+    print(C1.shape)
+    M1 = np.arange(0.00965, 0.00969, 0.000005)
+    print(M1.shape)
+    
+    C, M = np.meshgrid(C1, M1)
     Ti = Ti[1:]
     stds = stds[1:]
 
@@ -151,13 +170,47 @@ if __name__ == "__main__":
     T2 = M*M*np.sum((Yi/stds)**2)
     T3 = C*C*np.sum((1/stds)**2)
     T4 = -2*M*np.sum(Yi*Ti/(stds)**2)
-    T5 = -2*M*C*np.sum(Yi/(stds)**2)
-    T6 = 2*C*np.sum(Ti/(stds)**2)
+    T5 = 2*M*C*np.sum(Yi/(stds)**2)
+    T6 = -2*C*np.sum(Ti/(stds)**2)
 
     Z = T1 + T2 + T3 + T4 + T5 + T6
+    Z = Z/44 #per degree of freedom 46 - 2
+
+    print(np.amin(Z),"minimum value")
+
+    minval = Z[0][0]
+    minind = (0,0)
+    for (x,y), value in np.ndenumerate(Z):
+        if Z[x][y] < minval:
+            minind = (x,y)
+            minval = Z[x][y]
+    print(minval, "minimum value")
+    print(minind, "Index of minimum values")
+    print(Z[minind[0]][minind[1]] , "Z of minimum values")
+    print(M1[minind[0]], C1[minind[1]] )
+
+
+    """
+
+    K = np.ndarray.tolist(Z)
+
+    initial_guess = [1, 1]
+    result = optimize.minimize(K, initial_guess)
+    if result.success:
+        fitted_params = result.x
+        print(fitted_params)
+    else:
+        raise ValueError(result.message)
+
+    """
+    #print(Z.shape)
+    #print(C.shape)
+    #print(M.shape)
+    print(type(Z))
+    #print(Z)
 
     #Plotting the contour map
-    CS = plt.contour(C, M, Z, 100)
+    CS = plt.contour(C, M, Z, 200)
     plt.clabel(CS, inline=1, fontsize=10)
     plt.title('Contour plot for minimum error by varying M and C')
     plt.ylabel("m (slope)")
@@ -168,50 +221,39 @@ if __name__ == "__main__":
     
 
     """
-    The contour has a very interesting complicated shape
-    We think this might have caused a slight error in the predicted values as the predicted values are off from the values seen in the contour
-    Or it might be that we made a mistake in implementing the error function
-    predicted values by the line fitting algorithm
-    c = -0.18095889
-    m = 0.00454967
-
-    Appriximate values we visually ascertained from the contour
-    c = -0.05
-    m = 0.004425
-
-    As can be seen, the values of M are agreeing pretty well. There is a large difference in the values of c due to the steepness of the contour
-    
-    Moreover, we got minima in the individual plots when we plotted it against out values
+    The 1 - D Xhi - squared plots
 
     """
-    M = np.arange(0.00437, 0.00447, 0.00001)
+
+
+    M = np.arange(0.00965, 0.00969, 0.000005)
     #c = -0.18095889
-    c = -0.05
+    c = -10.1411
     T1 = np.sum((Ti/stds)**2)
     T2 = M*M*np.sum((Yi/stds)**2)
     T3 = c*c*np.sum((1/stds)**2)
     T4 = -2*M*np.sum(Yi*Ti/(stds)**2)
-    T5 = -2*M*c*np.sum(Yi/(stds)**2)
-    T6 = 2*c*np.sum(Ti/(stds)**2)
+    T5 = 2*M*c*np.sum(Yi/(stds)**2)
+    T6 = -2*c*np.sum(Ti/(stds)**2)
     Z = T1 + T2 + T3 + T4 + T5 + T6
-    plt.plot(M,Z, "ob")
+    plt.plot(M,Z/44)
     plt.title("Plot of Error vs M - Putting C at its minimum value")
     plt.xlabel("M")
     plt.ylabel("Error")
     plt.show()
 
-    C = np.arange(-0.2, 0.1, 0.02)
+    C = np.arange(-10.16, -10.12, 0.0001)
 
     #m = 0.00454967
-    m = 0.004425
+    m = 0.009665
     T1 = np.sum((Ti/stds)**2)
     T2 = m*m*np.sum((Yi/stds)**2)
     T3 = C*C*np.sum((1/stds)**2)
     T4 = -2*m*np.sum(Yi*Ti/(stds)**2)
-    T5 = -2*m*C*np.sum(Yi/(stds)**2)
-    T6 = 2*C*np.sum(Ti/(stds)**2)
+    T5 = 2*m*C*np.sum(Yi/(stds)**2)
+    T6 = -2*C*np.sum(Ti/(stds)**2)
     Z = T1 + T2 + T3 + T4 + T5 + T6
-    plt.plot(C,Z,"ob")
+    plt.plot(C,Z/44)
     plt.title("Plot of Error vs C - Putting M at its minimum value")
     plt.xlabel("C")
     plt.ylabel("Error")
